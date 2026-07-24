@@ -1,2 +1,6 @@
 packages:
   - "packages/framework"
+
+# Approve build scripts for trusted toolchain deps (pnpm 10+ blocks these by default).
+onlyBuiltDependencies:
+  - esbuild
