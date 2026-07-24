@@ -1,0 +1,37 @@
+[project]
+name = "goldenpath-cli"
+version = "0.1.0"
+description = "Golden Path CLI — the developer-facing interface that standardizes local workflows across LoanPro's polyglot teams."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "DevEx Platform" }]
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=13.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.5.0",
+]
+
+# The console entry point. After install this exposes the `gp` command.
+[project.scripts]
+gp = "goldenpath_cli.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/goldenpath_cli"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

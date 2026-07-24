@@ -1,0 +1,25 @@
+# Node / pnpm
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Python / uv
+__pycache__/
+*.pyc
+.venv/
+.uv/
+*.egg-info/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# CDK
+cdk.out/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Local audit sink (dev only)
+*.dora.jsonl

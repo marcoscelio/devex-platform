@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://loanpro.dev/schemas/dora-event.schema.json",
+  "title": "DORA & Audit Event",
+  "description": "The single, language-agnostic source of truth. BOTH the CLI (Python) and the CI/CD framework (TypeScript) emit events in this exact shape, so DORA metrics are comparable across every team regardless of language. Deployment Frequency, Lead Time for Changes, Change Failure Rate, and MTTR are DERIVED by aggregating these raw events over time.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "eventType",
+    "timestamp",
+    "workId",
+    "actor",
+    "source",
+    "service",
+    "audit"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0",
+      "description": "Contract version. Bump requires a coordinated release of both components."
+    },
+    "eventId": {
+      "type": "string",
+      "description": "Unique id for this event (UUID)."
+    },
+    "eventType": {
+      "type": "string",
+      "enum": ["change", "deployment", "incident", "audit"],
+      "description": "change=commit/PR merged; deployment=env promotion; incident=failure opened/resolved; audit=governance action."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC. The temporal anchor for all DORA calculations."
+    },
+    "workId": {
+      "type": "string",
+      "pattern": "^[A-Z]{2,}-[0-9]+$",
+      "description": "Universal Work ID (e.g. FIN-123). Ties branches, commits, PRs, deploys, and incidents together."
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string", "description": "Human username or machine/bot id." },
+        "type": { "type": "string", "enum": ["human", "machine"] }
+      }
+    },
+    "source": {
+      "type": "string",
+      "enum": ["cli", "ci"],
+      "description": "Which component emitted the event."
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "team", "language"],
+      "properties": {
+        "name": { "type": "string" },
+        "team": { "type": "string" },
+        "language": {
+          "type": "string",
+          "enum": ["python", "go", "clojure", "typescript"],
+          "description": "Language is metadata only — it never changes the event shape. This is what makes cross-language DORA comparable."
+        }
+      }
+    },
+    "git": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sha": { "type": "string" },
+        "branch": { "type": "string" },
+        "prNumber": { "type": "integer" }
+      }
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["sandbox", "staging", "production"],
+      "description": "Present on deployment events."
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["success", "failure"],
+      "description": "Present on deployment/incident events. Drives Change Failure Rate."
+    },
+    "dora": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional pre-computed correlates that make aggregation cheaper.",
+      "properties": {
+        "leadTimeSeconds": {
+          "type": "integer",
+          "description": "First-commit → production for this workId. Feeds Lead Time for Changes."
+        },
+        "timeToRestoreSeconds": {
+          "type": "integer",
+          "description": "Incident opened → resolved. Feeds MTTR."
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "SOC 2 unified audit trail. Every event answers who/what/when/why.",
+      "required": ["who", "what", "when", "why"],
+      "properties": {
+        "who": { "type": "string", "description": "Actor id responsible." },
+        "what": { "type": "string", "description": "Action performed." },
+        "when": { "type": "string", "format": "date-time" },
+        "why": { "type": "string", "description": "Work ID / justification for the action." }
+      }
+    }
+  }
+}

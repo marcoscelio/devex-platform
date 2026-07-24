@@ -1,0 +1,15 @@
+{
+  "name": "goldenpath-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Golden Path DevEx platform monorepo — Python CLI + TypeScript CI/CD framework.",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm --filter ./packages/framework build",
+    "test": "pnpm --filter ./packages/framework test",
+    "typecheck": "pnpm --filter ./packages/framework typecheck"
+  }
+}

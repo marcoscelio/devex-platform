@@ -1,0 +1,184 @@
+<meta charset="utf-8">
+<title>ADR-001 — Golden Path DevEx Platform</title>
+<style>
+  @page { size: Letter; margin: 12mm 14mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font: 10.5px/1.42 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1a1a2e; margin: 0;
+  }
+  h1 { font-size: 19px; margin: 0 0 2px; letter-spacing: -.2px; }
+  h2 { font-size: 12px; margin: 12px 0 4px; padding-bottom: 2px;
+       border-bottom: 1.5px solid #e2e8f0; color: #4338ca; text-transform: uppercase; letter-spacing: .4px; }
+  h3 { font-size: 10.5px; margin: 8px 0 2px; color: #0f172a; }
+  p { margin: 3px 0; }
+  .sub { color: #64748b; font-size: 9.5px; margin: 0 0 6px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px 14px; }
+  ul { margin: 2px 0; padding-left: 15px; }
+  li { margin: 1.5px 0; }
+  code { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 9px;
+         background: #f1f5f9; padding: 0 3px; border-radius: 3px; }
+  strong { color: #0f172a; }
+  .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 9px; }
+  .pill { display:inline-block; font-size:8.5px; font-weight:600; color:#4338ca;
+          background:#eef2ff; border:1px solid #c7d2fe; border-radius:10px; padding:0 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 9.3px; margin-top: 3px; }
+  td, th { border: 1px solid #e2e8f0; padding: 3px 6px; text-align: left; vertical-align: top; }
+  th { background: #f1f5f9; color: #334155; }
+  .diagram { text-align:center; margin: 4px 0 2px; }
+  .foot { color:#94a3b8; font-size:8.5px; margin-top:6px; border-top:1px solid #e2e8f0; padding-top:4px; }
+  .page-break { break-before: page; }
+  .tight li { margin: 1px 0; }
+</style>
+
+<h1>ADR-001 · The Golden Path DevEx Platform</h1>
+<p class="sub"><strong>Status:</strong> Proposed &nbsp;·&nbsp; <strong>Date:</strong> 2026-07-24 &nbsp;·&nbsp;
+   <strong>Author:</strong> Vinicius &nbsp;·&nbsp; <strong>Deciders:</strong> DevEx Platform &nbsp;·&nbsp;
+   <span class="pill">Internal Tools as a Product</span></p>
+
+<h2>Context</h2>
+<p>LoanPro runs 10+ independent, full-cycle engineering teams across multiple languages (Python, Go, Clojure,
+TypeScript). Left to themselves, each team invents its own git conventions, pipelines, and metrics — so DORA
+numbers are <strong>not comparable</strong> and SOC 2 auditing is inconsistent. We treat Developer Experience as a
+<strong>product</strong>: a "Golden Path" that homologates the lifecycle while remaining low-friction and non-blocking,
+so teams adopt it because it is the easiest route, not because it is mandated.</p>
+
+<h2>Decision</h2>
+<p>Ship a two-component ecosystem, each independently distributed <strong>from Git</strong> (no registry publish),
+wired together by a single <strong>language-agnostic event contract</strong>.</p>
+<div class="grid2">
+  <div class="card"><strong>Component A — CLI</strong> (Python, <code>uv</code>)<br>
+  The developer interface. Standardizes local workflows (<code>init</code>, <code>standards check</code>,
+  branch/PR conventions, git hooks) and enforces the <strong>Universal Work ID</strong>. Emits audit/DORA events.</div>
+  <div class="card"><strong>Component B — Framework</strong> (TypeScript, <code>pnpm</code>)<br>
+  Shared <strong>AWS CDK constructs</strong> + <strong>type-safe GitHub Actions</strong> generation (built on
+  <code>github-actions-workflow-ts</code>). Produces the Stack-Aware PR pipeline and captures DORA in CI.</div>
+</div>
+<p style="margin-top:5px"><strong>The contract</strong> — <code>dora-event.schema.json</code> — is the single source of
+truth. Both components emit the identical event shape; language is metadata only. <em>This is what makes DORA
+comparable between a Python team and a Go team</em>, and it is defined <strong>before</strong> either tool.</p>
+
+<h2>Architecture</h2>
+<div class="diagram">
+<svg width="720" height="248" viewBox="0 0 720 248" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Arial,sans-serif">
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#6366f1"/>
+    </marker>
+    <marker id="g" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <!-- boxes -->
+  <g font-size="10">
+    <!-- CLI -->
+    <rect x="8" y="16" width="176" height="54" rx="7" fill="#eef2ff" stroke="#6366f1"/>
+    <text x="96" y="34" text-anchor="middle" font-weight="700" fill="#3730a3">CLI · gp (Python / uv)</text>
+    <text x="96" y="48" text-anchor="middle" fill="#475569">init · standards check</text>
+    <text x="96" y="61" text-anchor="middle" fill="#475569">branch · pr · hooks</text>
+    <!-- Framework -->
+    <rect x="536" y="16" width="176" height="54" rx="7" fill="#eef2ff" stroke="#6366f1"/>
+    <text x="624" y="34" text-anchor="middle" font-weight="700" fill="#3730a3">Framework (TS / pnpm)</text>
+    <text x="624" y="48" text-anchor="middle" fill="#475569">CDK constructs</text>
+    <text x="624" y="61" text-anchor="middle" fill="#475569">typed GH Actions</text>
+    <!-- Service repo -->
+    <rect x="258" y="104" width="204" height="60" rx="7" fill="#ffffff" stroke="#0ea5e9"/>
+    <text x="360" y="122" text-anchor="middle" font-weight="700" fill="#0369a1">Service repo (Transactionify)</text>
+    <text x="360" y="136" text-anchor="middle" fill="#475569">.github/workflows (generated)</text>
+    <text x="360" y="150" text-anchor="middle" fill="#475569">CDK app · GoldenPathService</text>
+    <!-- Schema -->
+    <rect x="238" y="182" width="244" height="30" rx="15" fill="#fef3c7" stroke="#d97706"/>
+    <text x="360" y="201" text-anchor="middle" font-weight="700" fill="#92400e">dora-event.schema.json — single source of truth</text>
+    <!-- DORA store -->
+    <rect x="300" y="222" width="120" height="22" rx="5" fill="#dcfce7" stroke="#16a34a"/>
+    <text x="360" y="237" text-anchor="middle" font-weight="700" fill="#166534">DORA + Audit store</text>
+    <!-- Deploy chain -->
+    <g font-size="9">
+      <rect x="520" y="104" width="58" height="22" rx="4" fill="#f1f5f9" stroke="#94a3b8"/>
+      <text x="549" y="119" text-anchor="middle" fill="#334155">Sandbox</text>
+      <rect x="586" y="104" width="54" height="22" rx="4" fill="#f1f5f9" stroke="#94a3b8"/>
+      <text x="613" y="119" text-anchor="middle" fill="#334155">Staging</text>
+      <rect x="648" y="104" width="64" height="22" rx="4" fill="#f1f5f9" stroke="#94a3b8"/>
+      <text x="680" y="119" text-anchor="middle" fill="#334155">Production</text>
+      <line x1="578" y1="115" x2="584" y2="115" stroke="#94a3b8" marker-end="url(#g)"/>
+      <line x1="640" y1="115" x2="646" y2="115" stroke="#94a3b8" marker-end="url(#g)"/>
+    </g>
+  </g>
+  <!-- arrows -->
+  <g font-size="8.5" fill="#6366f1">
+    <path d="M96,70 C96,110 210,120 256,128" fill="none" stroke="#6366f1" marker-end="url(#a)"/>
+    <text x="120" y="104">uv install · conventions</text>
+    <path d="M624,70 C624,110 512,120 464,128" fill="none" stroke="#6366f1" marker-end="url(#a)"/>
+    <text x="516" y="104" text-anchor="end">pnpm install · generates</text>
+    <path d="M120,64 C150,150 175,192 236,196" fill="none" stroke="#6366f1" stroke-dasharray="3,2" marker-end="url(#a)"/>
+    <text x="150" y="176">emits</text>
+    <path d="M400,164 L378,180" fill="none" stroke="#6366f1" stroke-dasharray="3,2" marker-end="url(#a)"/>
+    <text x="410" y="176">emits (CI)</text>
+    <path d="M462,140 L516,116" fill="none" stroke="#94a3b8" marker-end="url(#g)"/>
+    <text x="470" y="150" fill="#94a3b8">promote</text>
+    <path d="M360,212 L360,220" fill="none" stroke="#16a34a" marker-end="url(#g)"/>
+  </g>
+</svg>
+</div>
+
+<div class="page-break"></div>
+
+<h2>Pipelines</h2>
+<div class="grid2">
+  <div><h3>PR Pipeline — implemented</h3>
+  <ul class="tight">
+    <li><strong>Small Tests:</strong> unit + Property-Based Testing + API-contract validation (no deploy).</li>
+    <li><strong>Deployment:</strong> promote Sandbox → Staging → Production via AWS CDK.</li>
+    <li>Two-Reviewer rule + standardized PR template; Work ID enforced in branch/commit/title.</li>
+  </ul></div>
+  <div><h3>Integration Pipeline — designed</h3>
+  <ul class="tight">
+    <li>Triggered on merge to <code>main</code>; final validation + production deploy.</li>
+    <li>Reuses the same stages and the same event schema, so DORA stays continuous across both pipelines.</li>
+    <li>PoC builds only the PR pipeline; this remains a config flag on the shared generator.</li>
+  </ul></div>
+</div>
+
+<h2>Homologation — how 10+ teams adopt both tools</h2>
+<ul class="tight">
+  <li><strong>Convention over configuration:</strong> <code>gp init</code> scaffolds correct-by-default; the golden path is the path of least resistance.</li>
+  <li><strong>One-command install from Git:</strong> <code>uv tool install git+…</code> and <code>pnpm add git+…</code>, versioned by tag — nothing to publish or operate.</li>
+  <li><strong>Dogfooding + a reference service:</strong> the platform repo and the Transactionify fork run the exact pipeline as a copyable starting point.</li>
+  <li><strong>Enforcement at the edges:</strong> git hooks and PR-pipeline gates make non-conformance fail fast, so adoption is pulled by developers rather than pushed by mandate.</li>
+</ul>
+
+<h2>Scalability — avoiding the platform-team bottleneck</h2>
+<ul class="tight">
+  <li><strong>Inner-source model:</strong> teams contribute via PRs against documented extension points (a new language profile ≈ 4 files, a new pipeline stage ≈ one builder function). No platform-team code required.</li>
+  <li><strong>Stack-Aware &amp; pluggable:</strong> language support is data, not a fork; adding Go/Clojure is additive, never a framework rewrite.</li>
+  <li><strong>Library, not a service:</strong> the framework is a versioned dependency each team pins and upgrades on its own cadence — the platform team is never in the request path.</li>
+</ul>
+
+<h2>Shift-Left Strategy</h2>
+<ul class="tight">
+  <li><strong>Pre-push git hooks (CLI-managed):</strong> run tests/lint before code leaves the machine.</li>
+  <li><strong>Fast PR "Small Tests" stage:</strong> unit + PBT + API-contract before any deploy.</li>
+  <li><strong>Local environment parity:</strong> run the service and its dependencies locally to execute tests without cloud latency — shrinking the defect-introduction → detection gap (the feedback-loop metric under evaluation).</li>
+</ul>
+
+<div class="grid2" style="margin-top:8px">
+  <div><h2 style="margin-top:0">Consequences</h2>
+  <ul class="tight">
+    <li><strong>+</strong> Comparable DORA across languages; consistent SOC 2 audit trail; low-friction adoption.</li>
+    <li><strong>+</strong> Platform team scales by curation, not by doing each team's pipeline work.</li>
+    <li><strong>−</strong> Two runtimes (Python + TS) to maintain; contract changes need a coordinated release.</li>
+    <li><strong>−</strong> Git-based distribution trades registry ergonomics for zero-publish simplicity (fine for PoC).</li>
+  </ul></div>
+  <div><h2 style="margin-top:0">Alternatives considered</h2>
+  <table>
+    <tr><th>Option</th><th>Why rejected</th></tr>
+    <tr><td>Single-language toolchain</td><td>Violates polyglot future-proofing</td></tr>
+    <tr><td>Central CI service owned by platform</td><td>Recreates the bottleneck we must avoid</td></tr>
+    <tr><td>Hand-written YAML templates</td><td>No compile-time safety; drifts per team</td></tr>
+  </table></div>
+</div>
+
+<p class="foot">ADR-001 · Golden Path DevEx Platform · Components: <code>goldenpath-cli</code> (uv) +
+<code>@goldenpath/framework</code> (pnpm) · Reference service: Transactionify · Contract: <code>dora-event.schema.json</code></p>
