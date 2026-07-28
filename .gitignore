@@ -1,6 +1,10 @@
 # Node / pnpm
 node_modules/
 dist/
+# ...but the framework SHIPS its prebuilt dist so it installs from Git with zero
+# config (no registry, no consumer-side build-script approval). Track it.
+!packages/framework/dist/
+!packages/framework/dist/**
 *.tsbuildinfo
 
 # Python / uv
