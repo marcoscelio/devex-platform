@@ -23,6 +23,8 @@ export interface PrPipelineOptions {
   language: Language;
   /** Deployment environments to promote through, in order. */
   environments?: DeployEnvironment[];
+  /** Trunk branch PRs target (default "main"). Some services use "master". */
+  baseBranch?: string;
 }
 
 /** Stack-Aware: the Small Tests steps differ per language, the contract does not. */
@@ -96,7 +98,10 @@ export function buildPrPipeline(options: PrPipelineOptions): Workflow {
   return new Workflow(`${options.service}-pr`, {
     name: `${options.service} · PR Pipeline`,
     on: {
-      pull_request: { branches: ["main"], types: ["opened", "synchronize", "reopened"] },
+      pull_request: {
+        branches: [options.baseBranch ?? "main"],
+        types: ["opened", "synchronize", "reopened"],
+      },
     },
   }).addJobs([smallTests, deployment]);
 }

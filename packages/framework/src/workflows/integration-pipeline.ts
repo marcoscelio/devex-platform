@@ -16,6 +16,8 @@ export interface IntegrationPipelineOptions {
   service: string;
   team: string;
   language: Language;
+  /** Trunk branch a merge lands on (default "main"). Some services use "master". */
+  baseBranch?: string;
 }
 
 /** Build the type-safe Integration Workflow (merge-to-main → validate → prod deploy). */
@@ -27,7 +29,7 @@ export function buildIntegrationPipeline(options: IntegrationPipelineOptions): W
 
   return new Workflow(`${options.service}-integration`, {
     name: `${options.service} · Integration Pipeline`,
-    on: { push: { branches: ["main"] } },
+    on: { push: { branches: [options.baseBranch ?? "main"] } },
   }).addJobs([validate, deploy]);
 }
 

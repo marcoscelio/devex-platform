@@ -90,6 +90,8 @@ interface PrPipelineOptions {
     language: Language;
     /** Deployment environments to promote through, in order. */
     environments?: DeployEnvironment[];
+    /** Trunk branch PRs target (default "main"). Some services use "master". */
+    baseBranch?: string;
 }
 declare function smallTestsJob(language: Language): NormalJob;
 declare function deploymentJob(service: string, environments: DeployEnvironment[]): NormalJob;
@@ -114,6 +116,8 @@ interface IntegrationPipelineOptions {
     service: string;
     team: string;
     language: Language;
+    /** Trunk branch a merge lands on (default "main"). Some services use "master". */
+    baseBranch?: string;
 }
 /** Build the type-safe Integration Workflow (merge-to-main → validate → prod deploy). */
 declare function buildIntegrationPipeline(options: IntegrationPipelineOptions): Workflow;
@@ -136,6 +140,8 @@ interface QReviewOptions {
     /** ARN of the IAM role GitHub Actions assumes via OIDC. */
     awsRoleArn: string;
     awsRegion?: string;
+    /** Trunk branch PRs target (default "main"). Some services use "master". */
+    baseBranch?: string;
 }
 declare function buildQReviewWorkflow(options: QReviewOptions): Workflow;
 /** Convenience: build + serialize to GitHub Actions YAML. */

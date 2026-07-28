@@ -21,6 +21,11 @@ describe('Integration pipeline (merge to main)', () => {
     expect(yaml).not.toContain('Deploy → sandbox')
     expect(yaml).toContain('Emit DORA deployment event')
   })
+
+  it('honors a custom baseBranch (e.g. master)', () => {
+    const wf = buildIntegrationPipeline({ service: 's', team: 't', language: 'go', baseBranch: 'master' })
+    expect(wf.workflow.on).toEqual({ push: { branches: ['master'] } })
+  })
 })
 
 describe('Amazon Q Developer review workflow', () => {

@@ -61,7 +61,10 @@ function buildPrPipeline(options) {
   return new Workflow(`${options.service}-pr`, {
     name: `${options.service} \xB7 PR Pipeline`,
     on: {
-      pull_request: { branches: ["main"], types: ["opened", "synchronize", "reopened"] }
+      pull_request: {
+        branches: [options.baseBranch ?? "main"],
+        types: ["opened", "synchronize", "reopened"]
+      }
     }
   }).addJobs([smallTests, deployment]);
 }
@@ -81,7 +84,7 @@ function buildIntegrationPipeline(options) {
   const deploy = deploymentJob(options.service, ["production"]).needs([validate]);
   return new Workflow2(`${options.service}-integration`, {
     name: `${options.service} \xB7 Integration Pipeline`,
-    on: { push: { branches: ["main"] } }
+    on: { push: { branches: [options.baseBranch ?? "main"] } }
   }).addJobs([validate, deploy]);
 }
 function generateIntegrationPipeline(options) {
@@ -119,7 +122,12 @@ function buildQReviewWorkflow(options) {
   ]);
   return new Workflow3(`${options.service}-q-review`, {
     name: `${options.service} \xB7 Amazon Q Review`,
-    on: { pull_request: { branches: ["main"], types: ["opened", "synchronize", "reopened"] } }
+    on: {
+      pull_request: {
+        branches: [options.baseBranch ?? "main"],
+        types: ["opened", "synchronize", "reopened"]
+      }
+    }
   }).addJob(review);
 }
 function generateQReviewWorkflow(options) {
@@ -147,4 +155,4 @@ export {
   NormalJob3 as NormalJob,
   Workflow4 as Workflow
 };
-//# sourceMappingURL=chunk-ZBPIS5TO.js.map
+//# sourceMappingURL=chunk-S33USVIL.js.map

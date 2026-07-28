@@ -17,6 +17,8 @@ export interface QReviewOptions {
   /** ARN of the IAM role GitHub Actions assumes via OIDC. */
   awsRoleArn: string;
   awsRegion?: string;
+  /** Trunk branch PRs target (default "main"). Some services use "master". */
+  baseBranch?: string;
 }
 
 export function buildQReviewWorkflow(options: QReviewOptions): Workflow {
@@ -44,7 +46,12 @@ export function buildQReviewWorkflow(options: QReviewOptions): Workflow {
 
   return new Workflow(`${options.service}-q-review`, {
     name: `${options.service} · Amazon Q Review`,
-    on: { pull_request: { branches: ["main"], types: ["opened", "synchronize", "reopened"] } },
+    on: {
+      pull_request: {
+        branches: [options.baseBranch ?? "main"],
+        types: ["opened", "synchronize", "reopened"],
+      },
+    },
   }).addJob(review);
 }
 
