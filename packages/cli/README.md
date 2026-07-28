@@ -8,7 +8,7 @@ DORA/audit events into the shared schema.
 
 ```bash
 # Install the `gp` command directly from the repository — no registry publish.
-uv tool install "git+https://github.com/<org>/devex-platform#subdirectory=packages/cli"
+uv tool install "git+https://github.com/marcoscelio/devex-platform#subdirectory=packages/cli"
 
 # ...or, in a checkout:
 uv tool install ./packages/cli

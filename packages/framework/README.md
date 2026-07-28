@@ -9,7 +9,7 @@ hand-writing YAML.
 
 ```bash
 # No registry publish — install straight from the repo.
-pnpm add "github:<org>/devex-platform#path:packages/framework"
+pnpm add "github:marcoscelio/devex-platform#path:packages/framework"
 ```
 
 ## Usage

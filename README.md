@@ -28,10 +28,10 @@ Install both components directly from Git (no registry publish required):
 
 ```bash
 # CLI
-uv tool install "git+https://github.com/<org>/devex-platform#subdirectory=packages/cli"
+uv tool install "git+https://github.com/marcoscelio/devex-platform#subdirectory=packages/cli"
 
 # Framework (inside a service repo)
-pnpm add "github:<org>/devex-platform#path:packages/framework"
+pnpm add "github:marcoscelio/devex-platform#path:packages/framework"
 ```
 
 Then, in a service repo:

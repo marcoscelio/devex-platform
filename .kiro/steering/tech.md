@@ -10,8 +10,8 @@
 - **Contract** — JSON Schema draft-07 (`schemas/dora-event.schema.json`).
 
 ## Distribution (no registry publish)
-- CLI: `uv tool install "git+<repo>#subdirectory=packages/cli"`.
-- Framework: `pnpm add "github:<org>/<repo>#path:packages/framework"` — ships
+- CLI: `uv tool install "git+https://github.com/marcoscelio/devex-platform#subdirectory=packages/cli"`.
+- Framework: `pnpm add "github:marcoscelio/devex-platform#path:packages/framework"` — ships
   prebuilt `dist/` so installs are zero-config (no consumer build step).
 
 ## Pipelines (generated, never hand-written)
