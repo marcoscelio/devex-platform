@@ -56,13 +56,13 @@ function smallTestSteps(language: Language): Step[] {
   ];
 }
 
-function smallTestsJob(language: Language): NormalJob {
+export function smallTestsJob(language: Language): NormalJob {
   return new NormalJob("small-tests", { name: "Small Tests", "runs-on": "ubuntu-latest" }).addSteps(
     smallTestSteps(language),
   );
 }
 
-function deploymentJob(service: string, environments: DeployEnvironment[]): NormalJob {
+export function deploymentJob(service: string, environments: DeployEnvironment[]): NormalJob {
   const steps: Step[] = [
     new Step({ name: "Checkout", uses: "actions/checkout@v4" }),
     new Step({ name: "Setup Node", uses: "actions/setup-node@v4", with: { "node-version": "20" } }),

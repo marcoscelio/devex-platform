@@ -1,0 +1,4 @@
+# file: /Users/marcoscelio/brunch/devex-platform/packages/cli/src/goldenpath_cli/workid.py
+# hypothesis_version: 6.141.1
+
+['-', '[A-Z]{2,}-[0-9]+', '[^a-z0-9]+', 'input']

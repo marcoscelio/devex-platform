@@ -46,6 +46,7 @@
     "@types/js-yaml": "^4.0.9",
     "aws-cdk-lib": "^2.140.0",
     "constructs": "^10.3.0",
+    "fast-check": "^4.9.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"

@@ -48,8 +48,8 @@ gp branch FIN-123 "add retry logic"
 - ✅ CLI with working commands (`init`, `standards check`, `branch`, `pr`, `hooks install`)
 - ✅ Framework: type-safe **PR pipeline** generator (Small Tests → Deployment) + shared CDK construct
 - ✅ Shared DORA/audit event contract, emitted by both components
-- ✅ Unit tests for each component
-- 🎯 Integration pipeline, Amazon Q PR review, Kiro specs — see the [ADR](docs/adr/ADR-001-architecture.md) (design) / roadmap
+- ✅ Unit tests **and property-based tests** for each component (hypothesis / fast-check)
+- ✅ **Bonuses:** Integration pipeline (merge-to-main), Amazon Q Developer PR-review workflow, git hooks via the CLI, and AWS Kiro steering + specs (`.kiro/`)
 
 ## Repository layout
 
@@ -58,6 +58,7 @@ packages/cli/         Python CLI (Component A)
 packages/framework/   TypeScript framework (Component B)
 schemas/              Canonical DORA/audit event schema
 docs/                 README assets, CONTRIBUTING, ADR
+.kiro/                Kiro steering files + specs (spec-driven development)
 ```
 
 ## Documentation
