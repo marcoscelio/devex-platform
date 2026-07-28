@@ -1,11 +1,11 @@
 // src/workflows/pr-pipeline.ts
 import { NormalJob, Step, Workflow } from "github-actions-workflow-ts";
 import { dump } from "js-yaml";
-function smallTestSteps(language) {
+function smallTestSteps(language, cliInstallSpec) {
   const setup = {
     python: [
-      new Step({ name: "Setup Python", uses: "actions/setup-python@v5", with: { "python-version": "3.11" } }),
-      new Step({ name: "Install", run: "uv sync --all-extras" }),
+      // uv (installed below) provisions Python per pyproject and runs the tests.
+      new Step({ name: "Install dependencies", run: "uv sync --all-extras" }),
       new Step({ name: "Unit + Property-Based Tests", run: "uv run pytest -q" })
     ],
     typescript: [
@@ -22,17 +22,21 @@ function smallTestSteps(language) {
       new Step({ name: "Unit + Property-Based Tests", run: "clojure -M:test" })
     ]
   };
+  const standardsCheck = cliInstallSpec ? new Step({
+    name: "API Contract Validation",
+    run: `uvx --from "${cliInstallSpec}" gp standards check`
+  }) : new Step({ name: "API Contract Validation", run: "gp standards check" });
   return [
     new Step({ name: "Checkout", uses: "actions/checkout@v4" }),
+    // uv powers both the Golden Path CLI (via uvx) and Python builds.
+    new Step({ name: "Install uv", uses: "astral-sh/setup-uv@v5" }),
     ...setup[language],
-    // The shared contract step: identical across every language, so the pipeline
-    // (and therefore DORA) is comparable regardless of stack.
-    new Step({ name: "API Contract Validation", run: "gp standards check" })
+    standardsCheck
   ];
 }
-function smallTestsJob(language) {
+function smallTestsJob(language, cliInstallSpec) {
   return new NormalJob("small-tests", { name: "Small Tests", "runs-on": "ubuntu-latest" }).addSteps(
-    smallTestSteps(language)
+    smallTestSteps(language, cliInstallSpec)
   );
 }
 function deploymentJob(service, environments) {
@@ -52,11 +56,15 @@ function deploymentJob(service, environments) {
       run: "node ./node_modules/@goldenpath/framework/dist/ci/emit-deployment.js"
     })
   );
-  return new NormalJob("deployment", { name: "Deployment", "runs-on": "ubuntu-latest" }).addSteps(steps);
+  return new NormalJob("deployment", {
+    name: "Deployment",
+    "runs-on": "ubuntu-latest",
+    if: "${{ vars.DEPLOY_ENABLED == 'true' }}"
+  }).addSteps(steps);
 }
 function buildPrPipeline(options) {
   const environments = options.environments ?? ["sandbox", "staging", "production"];
-  const smallTests = smallTestsJob(options.language);
+  const smallTests = smallTestsJob(options.language, options.cliInstallSpec);
   const deployment = deploymentJob(options.service, environments).needs([smallTests]);
   return new Workflow(`${options.service}-pr`, {
     name: `${options.service} \xB7 PR Pipeline`,
@@ -80,7 +88,7 @@ function generatePrPipeline(options) {
 import { Workflow as Workflow2 } from "github-actions-workflow-ts";
 import { dump as dump2 } from "js-yaml";
 function buildIntegrationPipeline(options) {
-  const validate = smallTestsJob(options.language);
+  const validate = smallTestsJob(options.language, options.cliInstallSpec);
   const deploy = deploymentJob(options.service, ["production"]).needs([validate]);
   return new Workflow2(`${options.service}-integration`, {
     name: `${options.service} \xB7 Integration Pipeline`,
@@ -154,4 +162,4 @@ export {
   NormalJob3 as NormalJob,
   Workflow4 as Workflow
 };
-//# sourceMappingURL=chunk-ENC3UOKF.js.map
+//# sourceMappingURL=chunk-HUJ3CAQZ.js.map

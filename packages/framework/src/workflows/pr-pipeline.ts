@@ -25,14 +25,16 @@ export interface PrPipelineOptions {
   environments?: DeployEnvironment[];
   /** Trunk branch PRs target (default "main"). Some services use "master". */
   baseBranch?: string;
+  /** Git spec used to run the Golden Path CLI in CI (`uvx --from <spec> gp …`). */
+  cliInstallSpec?: string;
 }
 
 /** Stack-Aware: the Small Tests steps differ per language, the contract does not. */
-function smallTestSteps(language: Language): Step[] {
+function smallTestSteps(language: Language, cliInstallSpec?: string): Step[] {
   const setup: Record<Language, Step[]> = {
     python: [
-      new Step({ name: "Setup Python", uses: "actions/setup-python@v5", with: { "python-version": "3.11" } }),
-      new Step({ name: "Install", run: "uv sync --all-extras" }),
+      // uv (installed below) provisions Python per pyproject and runs the tests.
+      new Step({ name: "Install dependencies", run: "uv sync --all-extras" }),
       new Step({ name: "Unit + Property-Based Tests", run: "uv run pytest -q" }),
     ],
     typescript: [
@@ -49,18 +51,27 @@ function smallTestSteps(language: Language): Step[] {
       new Step({ name: "Unit + Property-Based Tests", run: "clojure -M:test" }),
     ],
   };
+  // The shared contract step: identical across every language, so the pipeline
+  // (and therefore DORA) is comparable regardless of stack. When a platform CLI
+  // install spec is provided, run it hermetically via uvx (no PATH setup needed).
+  const standardsCheck = cliInstallSpec
+    ? new Step({
+        name: "API Contract Validation",
+        run: `uvx --from "${cliInstallSpec}" gp standards check`,
+      })
+    : new Step({ name: "API Contract Validation", run: "gp standards check" });
   return [
     new Step({ name: "Checkout", uses: "actions/checkout@v4" }),
+    // uv powers both the Golden Path CLI (via uvx) and Python builds.
+    new Step({ name: "Install uv", uses: "astral-sh/setup-uv@v5" }),
     ...setup[language],
-    // The shared contract step: identical across every language, so the pipeline
-    // (and therefore DORA) is comparable regardless of stack.
-    new Step({ name: "API Contract Validation", run: "gp standards check" }),
+    standardsCheck,
   ];
 }
 
-export function smallTestsJob(language: Language): NormalJob {
+export function smallTestsJob(language: Language, cliInstallSpec?: string): NormalJob {
   return new NormalJob("small-tests", { name: "Small Tests", "runs-on": "ubuntu-latest" }).addSteps(
-    smallTestSteps(language),
+    smallTestSteps(language, cliInstallSpec),
   );
 }
 
@@ -83,7 +94,13 @@ export function deploymentJob(service: string, environments: DeployEnvironment[]
       run: "node ./node_modules/@goldenpath/framework/dist/ci/emit-deployment.js",
     }),
   );
-  return new NormalJob("deployment", { name: "Deployment", "runs-on": "ubuntu-latest" }).addSteps(steps);
+  // Deploy only when the repo opts in (a `DEPLOY_ENABLED=true` repo variable),
+  // so services without AWS credentials wired up skip the job cleanly.
+  return new NormalJob("deployment", {
+    name: "Deployment",
+    "runs-on": "ubuntu-latest",
+    if: "${{ vars.DEPLOY_ENABLED == 'true' }}",
+  }).addSteps(steps);
 }
 
 /**
@@ -92,7 +109,7 @@ export function deploymentJob(service: string, environments: DeployEnvironment[]
  */
 export function buildPrPipeline(options: PrPipelineOptions): Workflow {
   const environments = options.environments ?? ["sandbox", "staging", "production"];
-  const smallTests = smallTestsJob(options.language);
+  const smallTests = smallTestsJob(options.language, options.cliInstallSpec);
   const deployment = deploymentJob(options.service, environments).needs([smallTests]);
 
   return new Workflow(`${options.service}-pr`, {

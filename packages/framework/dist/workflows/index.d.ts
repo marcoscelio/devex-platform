@@ -92,8 +92,10 @@ interface PrPipelineOptions {
     environments?: DeployEnvironment[];
     /** Trunk branch PRs target (default "main"). Some services use "master". */
     baseBranch?: string;
+    /** Git spec used to run the Golden Path CLI in CI (`uvx --from <spec> gp …`). */
+    cliInstallSpec?: string;
 }
-declare function smallTestsJob(language: Language): NormalJob;
+declare function smallTestsJob(language: Language, cliInstallSpec?: string): NormalJob;
 declare function deploymentJob(service: string, environments: DeployEnvironment[]): NormalJob;
 /**
  * Build the type-safe Workflow (a `github-actions-workflow-ts` instance).
@@ -118,6 +120,8 @@ interface IntegrationPipelineOptions {
     language: Language;
     /** Trunk branch a merge lands on (default "main"). Some services use "master". */
     baseBranch?: string;
+    /** Git spec used to run the Golden Path CLI in CI (`uvx --from <spec> gp …`). */
+    cliInstallSpec?: string;
 }
 /** Build the type-safe Integration Workflow (merge-to-main → validate → prod deploy). */
 declare function buildIntegrationPipeline(options: IntegrationPipelineOptions): Workflow;

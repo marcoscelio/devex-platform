@@ -18,11 +18,13 @@ export interface IntegrationPipelineOptions {
   language: Language;
   /** Trunk branch a merge lands on (default "main"). Some services use "master". */
   baseBranch?: string;
+  /** Git spec used to run the Golden Path CLI in CI (`uvx --from <spec> gp …`). */
+  cliInstallSpec?: string;
 }
 
 /** Build the type-safe Integration Workflow (merge-to-main → validate → prod deploy). */
 export function buildIntegrationPipeline(options: IntegrationPipelineOptions): Workflow {
-  const validate = smallTestsJob(options.language);
+  const validate = smallTestsJob(options.language, options.cliInstallSpec);
   // The PR pipeline already promoted through Sandbox/Staging on the branch, so
   // the Integration pipeline deploys straight to Production.
   const deploy = deploymentJob(options.service, ["production"]).needs([validate]);
