@@ -116,8 +116,7 @@ function buildQReviewWorkflow(options) {
     new Step2({
       name: "Run Amazon Q automated review on the PR diff",
       // Reviews the diff against the base branch and posts findings back to the PR.
-      run: 'q review --diff "origin/${{ github.base_ref }}...HEAD" --format github-pr',
-      with: {}
+      run: 'q review --diff "origin/${{ github.base_ref }}...HEAD" --format github-pr'
     })
   ]);
   return new Workflow3(`${options.service}-q-review`, {
@@ -155,4 +154,4 @@ export {
   NormalJob3 as NormalJob,
   Workflow4 as Workflow
 };
-//# sourceMappingURL=chunk-S33USVIL.js.map
+//# sourceMappingURL=chunk-ENC3UOKF.js.map

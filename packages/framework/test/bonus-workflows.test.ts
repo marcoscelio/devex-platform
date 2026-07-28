@@ -35,5 +35,7 @@ describe('Amazon Q Developer review workflow', () => {
     expect(yaml).toContain('aws-actions/configure-aws-credentials@v4')
     expect(yaml).toContain('arn:aws:iam::123:role/gha')
     expect(yaml).toContain('q review')
+    // A `run` step must never carry `with:` — GitHub rejects it (startup failure).
+    expect(yaml).not.toContain('with: {}')
   })
 })

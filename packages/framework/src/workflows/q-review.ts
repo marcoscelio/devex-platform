@@ -39,8 +39,7 @@ export function buildQReviewWorkflow(options: QReviewOptions): Workflow {
     new Step({
       name: "Run Amazon Q automated review on the PR diff",
       // Reviews the diff against the base branch and posts findings back to the PR.
-      run: "q review --diff \"origin/${{ github.base_ref }}...HEAD\" --format github-pr",
-      with: {},
+      run: 'q review --diff "origin/${{ github.base_ref }}...HEAD" --format github-pr',
     }),
   ]);
 
